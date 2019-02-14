@@ -1,0 +1,57 @@
+- hosts: [tag_Name_pade-dojo-skool]
+
+  tasks:
+    - name: Ensure apt cache is up to date
+      become: yes
+      apt: update_cache=yes
+
+    - name: Install required apt packages
+      become: yes
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - python3-pip
+          - pkg-config
+          - python-opencv
+
+    - name: Install required pip packages
+      become: yes
+      pip:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - boto
+          - boto3
+          - numpy
+
+    - name: Retrieve data code from S3 bucket
+      aws_s3:
+        bucket: dojo-skool-10
+        object: source_code.tar.gz
+        dest: "/home/ubuntu/source_code.tar.gz"
+        mode: get
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+    - name: Create data code directory
+      file:
+        path: "/home/ubuntu/source_code"
+        state: directory
+
+    - name: Unzip code
+      unarchive:
+        src: "/home/ubuntu/source_code.tar.gz"
+        dest: "/home/ubuntu/source_code"
+        remote_src: yes
+
+    - name: Install required pip packages
+      become: yes
+      pip:
+        requirements: "/home/ubuntu/source_code/requirements.txt"
+
+    - name: Create a cron job to run script
+      cron:
+        name: "do stuff"
+        minute: "*/5"
+        job: "python3 /home/ubuntu/source_code/pull_last_file_from_bucket.py && python3 /home/ubuntu/source_code/detect.py && python3 /home/ubuntu/source_code/push_results_to_bucket.py"

@@ -1,0 +1,6 @@
+numpy==1.16.1
+boto3==1.9.98
+boto==2.49.0
+cython==0.29.5
+yolo34py==0.1rc12
+opencv-python==4.0.0.21
