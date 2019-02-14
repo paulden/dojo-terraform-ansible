@@ -1,0 +1,10 @@
+.vscode/
+.idea/
+venv/
+
+data_code/cfg/
+data_code/data/
+data_code/weights/
+
+data_code/result_reports/
+data_code/result_images/
