@@ -4,3 +4,69 @@
     - name: Ensure apt cache is up to date
       become: yes
       apt: update_cache=yes
+
+    - name: Install required apt packages
+      become: yes
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - python3-pip
+          - pkg-config
+          - python-opencv
+
+    - name: Install required pip packages
+      become: yes
+      pip:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - boto
+          - boto3
+          - numpy
+
+    - name: Retrieve data code from S3 bucket
+      aws_s3:
+        bucket: dojo-skool-10
+        object: source_code.tar.gz
+        dest: "/home/ubuntu/source_code.tar.gz"
+        mode: get
+        aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+    - name: Create data code directory
+      file:
+        path: "/home/ubuntu/source_code"
+        state: directory
+
+    - name: Unzip code
+      unarchive:
+        src: "/home/ubuntu/source_code.tar.gz"
+        dest: "/home/ubuntu/source_code"
+        remote_src: yes
+
+    - name: Install required pip packages
+      become: yes
+      pip:
+        requirements: "/home/ubuntu/source_code/requirements.txt"
+
+    - name: Pull last image from bucket
+      shell: "python3 pull_last_file_from_bucket.py"
+      args:
+        chdir: "/home/ubuntu/source_code/"
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+
+    - name: Run detect script
+      shell: "python3 detect.py"
+      args:
+        chdir: "/home/ubuntu/source_code/"
+
+    - name: Push results to bucket
+      shell: "python3 push_results_to_bucket.py"
+      args:
+        chdir: "/home/ubuntu/source_code/"
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
