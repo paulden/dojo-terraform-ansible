@@ -1,0 +1,2 @@
+[instance_to_be_used]
+35.178.9.150 ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3
