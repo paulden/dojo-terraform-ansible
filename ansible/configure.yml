@@ -50,23 +50,8 @@
       pip:
         requirements: "/home/ubuntu/source_code/requirements.txt"
 
-    - name: Pull last image from bucket
-      shell: "python3 pull_last_file_from_bucket.py"
-      args:
-        chdir: "/home/ubuntu/source_code/"
-      environment:
-        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-
-    - name: Run detect script
-      shell: "python3 detect.py"
-      args:
-        chdir: "/home/ubuntu/source_code/"
-
-    - name: Push results to bucket
-      shell: "python3 push_results_to_bucket.py"
-      args:
-        chdir: "/home/ubuntu/source_code/"
-      environment:
-        AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-        AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+    - name: Create a cron job to run script
+      cron:
+        name: "do stuff"
+        minute: "*/5"
+        job: "python3 /home/ubuntu/source_code/pull_last_file_from_bucket.py && python3 /home/ubuntu/source_code/detect.py && python3 /home/ubuntu/source_code/push_results_to_bucket.py"
