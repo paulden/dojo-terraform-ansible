@@ -8,3 +8,9 @@ data_code/weights/
 
 data_code/result_reports/
 data_code/result_images/
+
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+
+ansible/*.retry
